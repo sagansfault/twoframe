@@ -30,9 +30,9 @@ S-----------------------]H[S----------------------]H[----P
 5. Add these contents to the file and nothing more, nothing less: 
 ```json
 {
-    "h_bind": 11,
+    "h_bind": 14,
     "k_bind": 13,
-    "d_bind": 14,
+    "d_bind": 11,
     "p_bind": 15,
     "s_bind": 16
 }
