@@ -1,14 +1,26 @@
 extern crate core;
 
+use std::env::current_dir;
+use std::fs::read_to_string;
 use std::time::Duration;
+
 use hidapi::HidApi;
 use tokio::time::Instant;
 
-use crate::gamepad::{GamePad, GGSTButton};
+use crate::gamepad::{Config, GamePad, GGSTButton};
 
 mod gamepad;
 
 fn main() {
+
+    let conf_result = load_config();
+    let conf: Config = match conf_result {
+        Some(c) => c,
+        None => {
+            println!("\n\nCould not load config, using default binds.\n\n");
+            Config::default()
+        }
+    };
 
     let hidapi = HidApi::new().expect("HidApi could not be made");
     let device_info = hidapi
@@ -32,7 +44,7 @@ fn main() {
 
         let gamepad = GamePad::new().get_state(&buf);
         if gamepad.share_button.pressed {
-            print_input_bin(input_bin.clone());
+            print_input_bin(input_bin.clone(), &conf);
             input_bin.clear();
             instant = Instant::now();
             continue;
@@ -42,7 +54,15 @@ fn main() {
     }
 }
 
-pub fn print_input_bin(bin: Vec<(Duration, GamePad)>) {
+pub fn load_config() -> Option<Config> {
+    let mut p = current_dir().map_or(None, |c| Some(c))?;
+    p.push("twoframe_config.txt");
+    let s = read_to_string(p).map_or(None, |c| Some(c))?;
+    let conf: Config = serde_json::from_str(&s).map_or(None, |c| Some(c))?;
+    return Some(conf);
+}
+
+pub fn print_input_bin(bin: Vec<(Duration, GamePad)>, conf: &Config) {
     if bin.is_empty() {
         return;
     }
@@ -60,7 +80,7 @@ pub fn print_input_bin(bin: Vec<(Duration, GamePad)>) {
             let prior = prior_state.get_button(button_id);
             let current = state.get_button(button_id);
 
-            if let Some(val) = current.get_ggst_button() {
+            if let Some(val) = conf.get_ggst_bind(button_id) {
                 if current.pressed {
                     if !prior.pressed {
                         // only care when H is released

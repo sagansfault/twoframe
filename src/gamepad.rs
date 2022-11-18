@@ -1,3 +1,44 @@
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+pub struct Config {
+    pub h_bind: i32,
+    pub k_bind: i32,
+    pub d_bind: i32,
+    pub p_bind: i32,
+    pub s_bind: i32
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Config {
+            h_bind: 11,
+            k_bind: 13,
+            d_bind: 14,
+            p_bind: 15,
+            s_bind: 16
+        }
+    }
+}
+
+impl Config {
+    pub fn get_ggst_bind(&self, id: i32) -> Option<GGSTButton> {
+        return if self.h_bind == id {
+            Some(GGSTButton::H)
+        } else if self.s_bind == id {
+            Some(GGSTButton::S)
+        } else if self.p_bind == id {
+            Some(GGSTButton::P)
+        } else if self.k_bind == id {
+            Some(GGSTButton::K)
+        } else if self.d_bind == id {
+            Some(GGSTButton::D)
+        } else {
+            None
+        }
+    }
+}
+
 #[derive(Copy, Clone, Debug, Eq, PartialEq)]
 pub enum GGSTButton {
     S,
@@ -27,6 +68,7 @@ pub struct Button {
 
 impl Button {
     pub fn get_ggst_button(&self) -> Option<GGSTButton> {
+
         match self.id {
             11 => Some(GGSTButton::H),
             13 => Some(GGSTButton::K),
